@@ -31,11 +31,9 @@ class NGram:
     def _wordGenerator(self, filenameOrText: str):
         if self.processText:
             if self.onlyLetters:
-                for line in filenameOrText:
-                    yield from filter(None, self.LETTERS_PATTERN.split(line))
+                yield from filter(None, self.LETTERS_PATTERN.split(filenameOrText))
             else:
-                for line in filenameOrText:
-                    yield from line.split()
+                yield from filenameOrText.split()
             return
 
         with open(filenameOrText, 'r', encoding='iso-8859-1') as file:
