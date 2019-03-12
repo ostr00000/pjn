@@ -2,12 +2,11 @@ import pickle
 from pprint import pprint
 
 from language import LanguageManager
-from metrics import Euclidean, Manhattan, Maximum, Cosine
 
 manSaveName = 'normalized.save'
 
 
-def main():
+def getManager():
     try:
         with open(manSaveName, 'rb') as f:
             manager = pickle.load(f)
@@ -17,15 +16,19 @@ def main():
         manager.normalize()
         with open(manSaveName, 'wb') as f:
             pickle.dump(manager, f)
+    return manager
+
+
+def main():
+    manager = getManager()
 
     try:
         while True:
-            text = input("get text to recognise language\n")
-            for metric in (Euclidean, Manhattan, Maximum, Cosine):
-                statistics = manager.guessLanguage(text, metric)
-                print(f"Metric: {metric.__name__}")
-                pprint(statistics)
-
+            text = input("Get text to recognise language\n")
+            if not text:
+                continue
+            statistics = manager.guessLanguage(text)
+            pprint(statistics)
     except KeyboardInterrupt:
         pass
 

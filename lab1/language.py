@@ -1,26 +1,12 @@
+import operator
 import os
 import re
-import time
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from typing import Iterator, Tuple, Dict, Type
 
-from decorator import decorator
-
-from metrics import Metric
+from metrics import Metric, ALL_METRIC
 from ngram import NGram
-
-
-@decorator
-def timeDec(fun, *args, **kwargs):
-    start = time.time()
-    try:
-        return fun(*args, **kwargs)
-    finally:
-        end = time.time()
-        total_time = end - start
-        msg = "{name}, execute time:{time:.4f}s" \
-            .format(name=fun.__name__, time=total_time)
-        print(msg)
+from utils import timeDec
 
 
 class LanguageManager:
@@ -57,13 +43,41 @@ class LanguageManager:
             for nGram in nGrams:
                 nGram.normalize()
 
-    def guessLanguage(self, text: str, metric: Type[Metric]) -> Dict[str, Dict[int, float]]:
+    def guessLanguage(self, text: str):
         testNGrams = self.createNGrams()
         for testNGram in testNGrams:
             testNGram.processText = True
             testNGram.process(text)
             testNGram.normalize()
 
+        retOriginal = {}
+        retWeight = {}
+        predictedLang = set()
+        for metric in ALL_METRIC:
+            result = self.checkInMetric(testNGrams, metric)
+            retOriginal[metric] = result
+
+            # apply weights
+            weightResults = {}
+            for lang, nGrams in result.items():
+                weightResult = 0
+                for nGram, value in nGrams.items():
+                    weightResult += 1 * value
+                weightResults[lang] = weightResult
+
+            sortedResultList: list = sorted(weightResults.items(), key=operator.itemgetter(1))
+            sortedResult = OrderedDict(sortedResultList)
+            retWeight[metric] = sortedResult
+
+            predictedLang.add(next(iter(sortedResult)))
+
+        return retOriginal, retWeight, predictedLang
+
+    @staticmethod
+    def _sortResult(keyValue):
+        return keyValue[0]
+
+    def checkInMetric(self, testNGrams, metric: Type[Metric]) -> Dict[str, Dict[int, float]]:
         lang2N2Val = defaultdict(dict)
 
         for langName, nGrams in self.languages.items():
@@ -72,5 +86,4 @@ class LanguageManager:
                 dist = g1.distance(g2, metric)
                 lang2N2Val[langName][g1.n] = dist
 
-        # weights = sorted(lang2N2Val.items(), key=lambda kv: )kv[1]
         return lang2N2Val

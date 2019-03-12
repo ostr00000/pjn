@@ -22,11 +22,14 @@ class NGram:
 
     def process(self, filenameOrText: str):
         for word in self._wordGenerator(filenameOrText):
-            for startIndex in range(len(word) - self.n + 1):
-                seq = word[startIndex:startIndex + self.n]
+            for startIndex in range(1 - self.n, len(word)):
+                endIndex = startIndex + self.n
+                startIndex = max(0, startIndex)
+                seq = word[startIndex:endIndex]
                 self.seqCounter[seq] += 1
 
-        print(f"processed {filenameOrText} [{self.n}]")
+        if not self.processText:
+            print(f"processed {filenameOrText} [{self.n}]")
 
     def _wordGenerator(self, filenameOrText: str):
         if self.processText:
