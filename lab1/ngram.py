@@ -26,7 +26,7 @@ class NGram:
                 seq = word[startIndex:startIndex + self.n]
                 self.seqCounter[seq] += 1
 
-        print(f"processed {filenameOrText} [{self.n}]")
+        # print(f"processed {filenameOrText} [{self.n}]")
 
     def _wordGenerator(self, filenameOrText: str):
         if self.processText:
