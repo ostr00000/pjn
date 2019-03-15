@@ -1,18 +1,18 @@
 import operator
 import os
+import pickle
 import re
 from collections import defaultdict, OrderedDict
 from typing import Iterator, Tuple, Dict, Type
 
 from metrics import Metric, ALL_METRIC
 from ngram import NGram
-from utils import timeDec
 
 
 class LanguageManager:
     FILE_PATTERN = re.compile('(\D+)(\d+)')
 
-    def __init__(self, minN=1, maxN=4, dataFolder: str = 'data'):
+    def __init__(self, minN=1, maxN=6, dataFolder: str = 'data'):
         self._minN = minN
         self._maxN = maxN
         self.dataFolder = dataFolder
@@ -22,12 +22,18 @@ class LanguageManager:
         return tuple(NGram(i) for i in range(self._minN, self._maxN))
 
     @staticmethod
-    def dataFileNameGenerator(path: str) -> Iterator[str]:
-        for filename in os.listdir(path):
-            if filename.endswith('.txt'):
-                yield filename
+    def getManager(filename) -> 'LanguageManager':
+        try:
+            with open(filename, 'rb') as f:
+                manager = pickle.load(f)
+        except FileNotFoundError:
+            manager = LanguageManager()
+            manager.process()
+            manager.normalize()
+            with open(filename, 'wb') as f:
+                pickle.dump(manager, f)
+        return manager
 
-    @timeDec
     def process(self):
         for filename in self.dataFileNameGenerator(self.dataFolder):
             match = self.FILE_PATTERN.match(filename)
@@ -38,17 +44,19 @@ class LanguageManager:
             for nGram in self.languages[match.group(1)]:
                 nGram.process(filePath)
 
+    @staticmethod
+    def dataFileNameGenerator(path: str) -> Iterator[str]:
+        for filename in os.listdir(path):
+            if filename.endswith('.txt'):
+                yield filename
+
     def normalize(self):
         for nGrams in self.languages.values():
             for nGram in nGrams:
                 nGram.normalize()
 
     def guessLanguage(self, text: str):
-        testNGrams = self.createNGrams()
-        for testNGram in testNGrams:
-            testNGram.processText = True
-            testNGram.process(text)
-            testNGram.normalize()
+        testNGrams = self.getTestNGrams(text)
 
         retOriginal = {}
         retWeight = {}
@@ -73,9 +81,13 @@ class LanguageManager:
 
         return retOriginal, retWeight, predictedLang
 
-    @staticmethod
-    def _sortResult(keyValue):
-        return keyValue[0]
+    def getTestNGrams(self, text):
+        testNGrams = self.createNGrams()
+        for testNGram in testNGrams:
+            testNGram.processText = True
+            testNGram.process(text)
+            testNGram.normalize()
+        return testNGrams
 
     def checkInMetric(self, testNGrams, metric: Type[Metric]) -> Dict[str, Dict[int, float]]:
         lang2N2Val = defaultdict(dict)

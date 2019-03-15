@@ -2,6 +2,7 @@ from collections import defaultdict
 from math import sqrt
 from typing import Type
 
+import numpy as np
 import regex as re
 
 from metrics import Metric, Euclidean
@@ -49,10 +50,12 @@ class NGram:
 
     def distance(self, obj: 'NGram', metricClass: Type[Metric] = Euclidean):
         metric = metricClass()
-        for key in set().union(self.seqCounter.keys(), obj.seqCounter.keys()):
-            metric.addPair(self.seqCounter[key], obj.seqCounter[key])
+        allKeys = list(set().union(self.seqCounter.keys(), obj.seqCounter.keys()))
+        s1, s2 = self.seqCounter, obj.seqCounter
+        s1 = np.array([s1[key] for key in allKeys])
+        s2 = np.array([s2[key] for key in allKeys])
 
-        return metric.getResult()
+        return metric.getDistance(s1, s2)
 
     def normalize(self):
         total = sqrt(sum(i ** 2 for i in self.seqCounter.values()))

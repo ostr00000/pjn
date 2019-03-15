@@ -1,7 +1,5 @@
-import pickle
 from collections import defaultdict
 from operator import itemgetter
-
 from typing import Dict, Any
 
 from classification import Classification
@@ -9,19 +7,6 @@ from language import LanguageManager
 from metrics import Cosine
 
 manSaveName = 'normalized.save'
-
-
-def getManager() -> LanguageManager:
-    try:
-        with open(manSaveName, 'rb') as f:
-            manager = pickle.load(f)
-    except FileNotFoundError:
-        manager = LanguageManager()
-        manager.process()
-        manager.normalize()
-        with open(manSaveName, 'wb') as f:
-            pickle.dump(manager, f)
-    return manager
 
 
 def flipDict(data: Dict[Any, Dict]) -> Dict[Any, Dict]:
@@ -34,8 +19,14 @@ def flipDict(data: Dict[Any, Dict]) -> Dict[Any, Dict]:
     return retDict
 
 
-def measure(filename, searchLang='polish'):
-    manager = getManager()
+def flipDict3(data: Dict[Any, Dict[Any, Dict]]) -> Dict[Any, Dict[Any, Dict]]:
+    for key, subDict in data.items():
+        data[key] = flipDict(subDict)
+    return flipDict(data)
+
+
+def measure(filename, searchLang='polish', metric=Cosine):
+    manager = LanguageManager.getManager()
     nGram2List = defaultdict(list)
     baseList = []
 
@@ -47,8 +38,8 @@ def measure(filename, searchLang='polish'):
             baseLang, text = line.split(' ', 1)
             baseList.append(baseLang == searchLang)
 
-            guess = manager.guessLanguage(text, Cosine)
-            guess = flipDict(guess)
+            guess = manager.guessLanguage(text)
+            guess = flipDict(guess[0][metric])
 
             for nGram, lang in guess.items():
                 bestLang = min(lang.items(), key=itemgetter(1))[0]
@@ -63,7 +54,12 @@ def measure(filename, searchLang='polish'):
             print(f"Accuracy: {c.getAccuracy()}\n")
 
 
-if __name__ == '__main__':
-    for lang in ("english", "german", "polish", "spanish", "italian"):
+def main():
+    # for lang in ("english", "german", "polish", "spanish", "italian"):
+    for lang in ("english", "polish"):
         print(f"\nLanguage: {lang}")
         measure("myfile.txt", lang)
+
+
+if __name__ == '__main__':
+    main()
