@@ -1,4 +1,3 @@
-import pickle
 from pprint import pprint
 
 from language import LanguageManager
@@ -6,21 +5,8 @@ from language import LanguageManager
 manSaveName = 'normalized.save'
 
 
-def getManager():
-    try:
-        with open(manSaveName, 'rb') as f:
-            manager = pickle.load(f)
-    except FileNotFoundError:
-        manager = LanguageManager()
-        manager.process()
-        manager.normalize()
-        with open(manSaveName, 'wb') as f:
-            pickle.dump(manager, f)
-    return manager
-
-
 def main():
-    manager = getManager()
+    manager = LanguageManager.getManager(manSaveName)
 
     try:
         while True:
