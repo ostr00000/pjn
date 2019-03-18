@@ -11,11 +11,12 @@ from metrics import Metric, Euclidean
 class NGram:
     LETTERS_PATTERN = re.compile('\P{L}')
 
-    def __init__(self, n: int, onlyLetters=True, processText=False):
+    def __init__(self, n: int, onlyLetters=True, processText=False, encoding='iso-8859-1'):
         self.n = n
         self.onlyLetters = onlyLetters
         self.processText = processText
         self.seqCounter = defaultdict(self._zero)
+        self.encoding = encoding
 
     @staticmethod
     def _zero():
@@ -23,6 +24,7 @@ class NGram:
 
     def process(self, filenameOrText: str):
         for word in self._wordGenerator(filenameOrText):
+            word = word.lower()
             for startIndex in range(1 - self.n, len(word)):
                 endIndex = startIndex + self.n
                 startIndex = max(0, startIndex)
@@ -40,7 +42,7 @@ class NGram:
                 yield from filenameOrText.split()
             return
 
-        with open(filenameOrText, 'r', encoding='iso-8859-1') as file:
+        with open(filenameOrText, 'r', encoding=self.encoding) as file:
             if self.onlyLetters:
                 for line in file:
                     yield from filter(None, self.LETTERS_PATTERN.split(line))
