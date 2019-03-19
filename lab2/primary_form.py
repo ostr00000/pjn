@@ -17,13 +17,13 @@ class PrimaryForm:
 
         with open(filename, 'r') as file:
             for line in file:
-                words = line.rstrip().split(', ')
+                words = line.rstrip().lower().split(', ')
                 if not words:
                     continue
                 primaryForm = words[0]
 
-                if currentLetter != primaryForm[0].lower():
-                    currentLetter = primaryForm[0].lower()
+                if currentLetter != primaryForm[0]:
+                    currentLetter = primaryForm[0]
                     print(currentLetter)
 
                 for word in words:
@@ -44,7 +44,7 @@ class PrimaryForm:
     def _generate(self, filename: str, useEndLine=False) -> Iterable[str]:
         with open(filename, 'r') as file:
             for number, line in enumerate(file):
-                words = filter(None, self.SPLIT_PATTERN.split(line))
+                words = filter(None, self.SPLIT_PATTERN.split(line.lower()))
 
                 for word in words:
                     try:
