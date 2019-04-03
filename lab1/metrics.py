@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.distance import cosine
 
 
 class Metric:
@@ -30,14 +31,7 @@ class Maximum(Metric):
 
 class Cosine(Metric):
     def getDistance(self, a: np.ndarray, b: np.ndarray) -> float:
-        """vectors a, b are normalized, ||a|| = ||b|| = 1"""
-        # lengthA: float = np.sqrt(np.sum(a ** 2))
-        # lengthB: float = np.sqrt(np.sum(b ** 2))
-        # div = lengthA * lengthB
-        # if div == 0:
-        #     return 1.
-        acc: float = np.sum(a * b)
-        return 1. - acc
+        return cosine(a, b)
 
 
 ALL_METRIC = (Euclidean, Manhattan, Maximum, Cosine)

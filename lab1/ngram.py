@@ -1,6 +1,6 @@
 from collections import defaultdict
 from math import sqrt
-from typing import Type
+from typing import Type, Iterable
 
 import numpy as np
 import regex as re
@@ -17,6 +17,8 @@ class NGram:
         self.processText = processText
         self.seqCounter = defaultdict(self._zero)
         self.encoding = encoding
+
+        self.vector = None
 
     @staticmethod
     def _zero():
@@ -58,6 +60,9 @@ class NGram:
         s2 = np.array([s2[key] for key in allKeys])
 
         return metric.getDistance(s1, s2)
+
+    def prepareCache(self, possibleKeys: Iterable[str]):
+        self.vector = np.array([self.seqCounter[key] for key in possibleKeys])
 
     def normalize(self):
         total = sqrt(sum(i ** 2 for i in self.seqCounter.values()))

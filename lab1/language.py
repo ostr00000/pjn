@@ -12,7 +12,7 @@ from ngram import NGram
 class LanguageManager:
     FILE_PATTERN = re.compile('(\D+)(\d+)')
 
-    def __init__(self, minN=1, maxN=6, dataFolder: str = 'data'):
+    def __init__(self, minN=1, maxN=4, dataFolder: str = 'data'):
         self._minN = minN
         self._maxN = maxN
         self.dataFolder = dataFolder
