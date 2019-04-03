@@ -17,4 +17,5 @@ class LongestCommonSubstring(BaseClassification):
         sm = SequenceMatcher(None, xStr, yStr)
         lm = sm.find_longest_match(0, len(xStr), 0, len(yStr))
         den = max(len(xStr), len(yStr))
-        return 1 - (lm.size / den)
+        ret = 1 - (lm.size / den)
+        return ret

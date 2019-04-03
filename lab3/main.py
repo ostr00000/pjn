@@ -14,6 +14,7 @@ import logging
 
 
 path = os.path.join('data', 'lines.txt')
+scorePath = os.path.join('data', 'clusters.txt')
 
 
 def groupScan(scan, data):
