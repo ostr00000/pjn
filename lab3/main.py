@@ -2,6 +2,7 @@ import json
 import os
 from collections import defaultdict
 from pprint import pprint
+from typing import Dict, List
 
 from lab3.classification.baseClassification import BaseClassification
 from lab3.classification.cache import CacheManager
@@ -17,7 +18,7 @@ path = os.path.join('data', 'lines.txt')
 scorePath = os.path.join('data', 'clusters.txt')
 
 
-def groupScan(scan, data):
+def groupScan(scan, data) -> Dict[str, List[str]]:
     result = defaultdict(list)
     for i, group in enumerate(scan):
         result[str(group)].append(data[i])
