@@ -1,4 +1,5 @@
 import os
+from collections import defaultdict
 from itertools import islice
 from operator import itemgetter
 
@@ -43,23 +44,65 @@ def printStatistics(gramNumber, firstN=20):
     print(f"First {firstN} most frequent {gramNumber}-grams:\n{statistic[:firstN]}")
 
 
+def gr(pf: PrimaryForm = None, n=3):
+    import regex as re
+    LETTERS_PATTERN = re.compile('\P{L}')
+
+    def getWord(word: str):
+        try:
+            return pf.dictionary[word]
+        except KeyError:
+            return word
+
+    with open(inputPath) as f:
+        d = defaultdict(lambda: 0)
+
+        for j, line in enumerate(f):
+            lin = list(filter(None, LETTERS_PATTERN.split(line.rstrip())))
+            if not lin:
+                continue
+            for i in range(0, len(lin) - n):
+                if pf:
+                    key = tuple(getWord(w.lower()) for w in lin[i:i + n])
+                else:
+                    key = tuple(w.lower() for w in lin[i:i + n])
+                d[key] += 1
+
+            # if j % 1000 == 0:
+            #     print(j)
+
+        s = sorted(d.items(), key=itemgetter(1, 0), reverse=True)
+        return s
+
+
 def main():
     primaryForm = PrimaryForm(dictPath)
     ranking = primaryForm.getRankingForFile(inputPath)
+    #
+    # printFirst(ranking, 50)
+    # print(f"Total words: {len(ranking)}")
+    # print(f"Hapax legomena: {ranking.countHapaxLegomena()}")
+    #
+    # printCovering(ranking, 20)
+    # printCovering(ranking, 50)
+    # printCovering(ranking, 80)
+    # printCovering(ranking, 90)
+    #
+    # plot(ranking)
+    #
+    # printStatistics(2)
+    # printStatistics(3)
 
-    printFirst(ranking, 50)
-    print(f"Total words: {len(ranking)}")
-    print(f"Hapax legomena: {ranking.countHapaxLegomena()}")
+    # s = gr(primaryForm, n=3)[:50]
+    # print(s)
+    # s = gr(primaryForm, n=2)[:50]
+    # print(s)
+    s = gr(n=3)[:50]
+    print(s)
+    print("\n")
+    s = gr(n=2)[:50]
+    print(s)
 
-    printCovering(ranking, 20)
-    printCovering(ranking, 50)
-    printCovering(ranking, 80)
-    printCovering(ranking, 90)
-
-    plot(ranking)
-
-    printStatistics(2)
-    printStatistics(3)
 
 
 if __name__ == '__main__':

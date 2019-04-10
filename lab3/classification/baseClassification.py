@@ -1,5 +1,8 @@
+from collections import defaultdict
+
 import numpy as np
 from sklearn.cluster import dbscan
+from sklearn.neighbors import NearestNeighbors
 
 from lab3.stop_list import StopList
 
@@ -9,6 +12,8 @@ class BaseClassification:
     def __init__(self, stopList: StopList, dataToClassify: list = None):
         self.stopList = stopList
         self.dataToClassify = dataToClassify or []
+        self.classifiedData = defaultdict(list)
+        self.distanceMatrix = None
 
     def load(self, filename):
         with open(filename, 'r') as f:
@@ -26,10 +31,23 @@ class BaseClassification:
     def metric(self, x, y):
         raise NotImplementedError
 
-    def dbscan(self, eps=5, min_samples=2, **kwargs):
+    def dbscan(self, eps=5, min_samples=2):
         maxData = len(self.dataToClassify)
         indexes = np.arange(maxData).reshape(-1, 1)
-        core, labels = dbscan(indexes, metric=self.metric, eps=eps, min_samples=min_samples,
-                              algorithm='brute', n_jobs=-1, **kwargs)
-        labels = [lab if lab != -1 else maxData + i for i, lab in enumerate(labels)]
-        return labels
+
+        neighbors_model = NearestNeighbors(radius=eps, metric=self.metric, n_jobs=-1)
+        neighbors_model.fit(indexes)
+        self.distanceMatrix, neighborhoods = neighbors_model.radius_neighbors(indexes, eps)
+
+        core, labels = dbscan(self.distanceMatrix, metric='precomputed', min_samples=min_samples)
+        self.setLabels(labels)
+
+    def setLabels(self, labels: np.ndarray):
+        lastClusterIndex = np.max(labels)
+        for label, line in zip(labels, self.dataToClassify):
+            label = int(label)
+            if label == -1:
+                label = lastClusterIndex
+                lastClusterIndex += 1
+
+            self.classifiedData[label].append(line)
