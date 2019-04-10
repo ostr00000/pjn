@@ -1,19 +1,34 @@
+import time
 from collections import defaultdict
 
 import numpy as np
+from decorator import decorator
 from sklearn.cluster import dbscan
-from sklearn.neighbors import NearestNeighbors
+from sklearn.metrics import pairwise_distances
 
 from lab3.stop_list import StopList
 
 
+@decorator
+def timeDec(fun, *args, **kwargs):
+    t0 = time.time()
+    try:
+        return fun(*args, **kwargs)
+    finally:
+        tx = time.time()
+        print(f'total time: {tx - t0}')
+
+
 class BaseClassification:
 
-    def __init__(self, stopList: StopList, dataToClassify: list = None):
+    def __init__(self, stopList: StopList = None, dataToClassify: list = None, epsilon: float = 0.5):
         self.stopList = stopList
         self.dataToClassify = dataToClassify or []
         self.classifiedData = defaultdict(list)
         self.distanceMatrix = None
+        self.dataToIndex = {v: i for i, v in enumerate(self.dataToClassify)}
+        self.epsilon = epsilon
+        self.index = {'dunn': None, 'davides_bouldin': None}
 
     def load(self, filename):
         with open(filename, 'r') as f:
@@ -31,23 +46,20 @@ class BaseClassification:
     def metric(self, x, y):
         raise NotImplementedError
 
-    def dbscan(self, eps=5, min_samples=2):
-        maxData = len(self.dataToClassify)
-        indexes = np.arange(maxData).reshape(-1, 1)
+    @timeDec
+    def computeDistanceMatrix(self):
+        indexes = np.arange(len(self.dataToClassify)).reshape(-1, 1)
+        self.distanceMatrix = pairwise_distances(indexes, metric=self.metric, n_jobs=-1)
 
-        neighbors_model = NearestNeighbors(radius=eps, metric=self.metric, n_jobs=-1)
-        neighbors_model.fit(indexes)
-        self.distanceMatrix, neighborhoods = neighbors_model.radius_neighbors(indexes, eps)
+    def dbscan(self):
+        core, labels = dbscan(self.distanceMatrix, metric='precomputed',
+                              eps=self.epsilon, min_samples=2, n_jobs=-1)
 
-        core, labels = dbscan(self.distanceMatrix, metric='precomputed', min_samples=min_samples)
-        self.setLabels(labels)
-
-    def setLabels(self, labels: np.ndarray):
-        lastClusterIndex = np.max(labels)
+        lastClusterIndex = int(np.max(labels))
         for label, line in zip(labels, self.dataToClassify):
-            label = int(label)
+            label = int(label)  # change numpy int64 to int (need to save json)
             if label == -1:
-                label = lastClusterIndex
                 lastClusterIndex += 1
+                label = lastClusterIndex
 
             self.classifiedData[label].append(line)

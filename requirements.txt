@@ -1,0 +1,6 @@
+leven
+scikit-learn
+decorator
+scipy
+numpy
+regex

@@ -5,7 +5,7 @@ from typing import Type, Iterable
 import numpy as np
 import regex as re
 
-from metrics import Metric, Euclidean
+from lab1.metrics import Metric, Euclidean
 
 
 class NGram:
