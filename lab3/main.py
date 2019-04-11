@@ -82,7 +82,6 @@ def main():
     showResult('lcs0.05', LongestCommonSubstring(stopList, base.dataToClassify, epsilon=0.05))
 
 
-
 if __name__ == '__main__':
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
