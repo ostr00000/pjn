@@ -30,7 +30,7 @@ class CorpusCollector:
 
     @staticmethod
     def getSmoothingBase():
-        return 1
+        return 100000
 
     def __init__(self):
         self.wordsFrequency = defaultdict(self.getSmoothingBase)
@@ -54,6 +54,7 @@ def bestCorrectWord(errorWord: str, fun: Callable[[str, str], float],
     best = 0, None
     for correctWord, freq in possibleWords.items():
         prob = fun(errorWord, correctWord) / max(1, 100 * abs(len(errorWord) - len(correctWord)))
+
         val = prob * freq
         if val > best[0]:
             best = val, correctWord
