@@ -5,17 +5,18 @@ from typing import Union, DefaultDict, Set
 
 def levMetric(xStr: str, yStr: str):
     arr = list(range(len(xStr) + 1))
-    debugArr = [arr.copy()]
     result = None
-    oldDoubleVal = None
-
+    doubleWordLoop = False
     for i, y in enumerate(yStr, start=1):
         left = i
         skew = i - 1
         doubleWord = False
+
+        if doubleWordLoop:
+            doubleWordLoop = False
+            continue
         doubleWordLoop = False
 
-        j = 0
         for j, x in enumerate(xStr, start=1):
             upper = arr[j]
             leftInc = 0 if doubleWord else 1
@@ -38,24 +39,9 @@ def levMetric(xStr: str, yStr: str):
             skew = upper
             left = arr[j] = newVal
 
-        debugArr.append(arr.copy())
-
         if doubleWord:
             result = arr[-1]
 
-        if oldDoubleVal:
-            if oldDoubleVal[j] <= arr[j]:
-                arr = oldDoubleVal
-                oldDoubleVal = None
-            elif doubleWordLoop:
-                oldDoubleVal = arr.copy()
-            else:
-                oldDoubleVal = None
-        elif doubleWordLoop:
-            oldDoubleVal = arr.copy()
-
-    if oldDoubleVal and len(xStr) >= 2:
-        return oldDoubleVal[-2]
     result = min(arr[-1], result) if result else arr[-1]
     return result
 
@@ -96,68 +82,68 @@ similarLetters = defaultdict(set, **{
 similarLetters = updateReversed(convertValuesToSet(similarLetters))
 
 if __name__ == '__main__':
-    # # equality
-    # assert levMetric('simpleword', 'simpleword') == 0
-    # assert levMetric('si', 'si') == 0
-    # assert levMetric('a', 'a') == 0
-    #
-    # # size diff
-    # assert levMetric('simpleword', 'simpleword++') == 2
-    # assert levMetric('simpleword--', 'simpleword') == 2
-    # assert levMetric('simpleword', 'simpl++eword') == 2
-    # assert levMetric('simpl--eword', 'simpleword') == 2
-    # assert levMetric('simpleword', '++simpleword') == 2
-    # assert levMetric('--simpleword', 'simpleword') == 2
-    #
-    # # spelling error
-    # assert levMetric('tą', 'tę') == 0.25
-    # assert levMetric('ów', 'uw') == 0.25
-    # assert levMetric('ktoś', 'któs') == 0.5
-    #
-    # # size error without prefix and suffix
-    # assert levMetric('en', 'ę') == 0.25
-    # assert levMetric('ę', 'en') == 0.25
-    # assert levMetric('ku', 'q') == 2
-    # assert levMetric('q', 'ku') == 2
-    #
-    # # size error good prefix
-    # assert levMetric('ben', 'bę') == 0.25
-    # assert levMetric('bę', 'ben') == 0.25
-    # assert levMetric('bq', 'bku') == 2
-    # assert levMetric('bku', 'bq') == 2
-    #
-    # # size error bad prefix
-    # assert levMetric('den', 'bę') == 1.25
-    # assert levMetric('dę', 'ben') == 1.25
-    # assert levMetric('dku', 'bq') == 3
-    # assert levMetric('dq', 'bku') == 3
-    #
-    # # size error good suffix
-    # assert levMetric('end', 'ęd') == 0.25
-    # assert levMetric('ęd', 'end') == 0.25
-    # assert levMetric('kud', 'qd') == 2
-    # assert levMetric('qd', 'kud') == 2
-    #
-    # # size error bad suffix
-    # assert levMetric('end', 'ęc') == 1.25
-    # assert levMetric('ęd', 'enc') == 1.25
-    # assert levMetric('kud', 'qc') == 3
-    # assert levMetric('qd', 'kuc') == 3
-    #
-    # # size error two times
-    # assert levMetric('aendenc', 'aędęc') == 0.5
-    # assert levMetric('aędęc', 'aendenc') == 0.5
-    # assert levMetric('akudkuc', 'aqdqc') == 4
-    # assert levMetric('aqdqc', 'akudkuc') == 4
-    #
-    # # other
-    # assert levMetric('biurko', 'pióro') == 2.25
-    # assert levMetric('abcde', 'ąbćdę') == 0.75
-    # assert levMetric('bende', 'będę') == 0.5
+    # equality
+    assert levMetric('simpleword', 'simpleword') == 0
+    assert levMetric('si', 'si') == 0
+    assert levMetric('a', 'a') == 0
 
-    print(levMetric('rzrz', 'żż'))
-    print(levMetric('żż', 'rzrz'))
+    # size diff
+    assert levMetric('simpleword', 'simpleword++') == 2
+    assert levMetric('simpleword--', 'simpleword') == 2
+    assert levMetric('simpleword', 'simpl++eword') == 2
+    assert levMetric('simpl--eword', 'simpleword') == 2
+    assert levMetric('simpleword', '++simpleword') == 2
+    assert levMetric('--simpleword', 'simpleword') == 2
 
-    # print(levMetric('gżegżu', 'grzegrzu'))
+    # spelling error
+    assert levMetric('tą', 'tę') == 0.25
+    assert levMetric('ów', 'uw') == 0.25
+    assert levMetric('ktoś', 'któs') == 0.5
+
+    # size error without prefix and suffix
+    assert levMetric('en', 'ę') == 0.25
+    assert levMetric('ę', 'en') == 0.25
+    assert levMetric('ku', 'q') == 2
+    assert levMetric('q', 'ku') == 2
+
+    # size error good prefix
+    assert levMetric('ben', 'bę') == 0.25
+    assert levMetric('bę', 'ben') == 0.25
+    assert levMetric('bq', 'bku') == 2
+    assert levMetric('bku', 'bq') == 2
+
+    # size error bad prefix
+    assert levMetric('den', 'bę') == 1.25
+    assert levMetric('dę', 'ben') == 1.25
+    assert levMetric('dku', 'bq') == 3
+    assert levMetric('dq', 'bku') == 3
+
+    # size error good suffix
+    assert levMetric('end', 'ęd') == 0.25
+    assert levMetric('ęd', 'end') == 0.25
+    assert levMetric('kud', 'qd') == 2
+    assert levMetric('qd', 'kud') == 2
+
+    # size error bad suffix
+    assert levMetric('end', 'ęc') == 1.25
+    assert levMetric('ęd', 'enc') == 1.25
+    assert levMetric('kud', 'qc') == 3
+    assert levMetric('qd', 'kuc') == 3
+
+    # size error two times
+    assert levMetric('aendenc', 'aędęc') == 0.5
+    assert levMetric('aędęc', 'aendenc') == 0.5
+    assert levMetric('akudkuc', 'aqdqc') == 4
+    assert levMetric('aqdqc', 'akudkuc') == 4
+
+    # size error two times in row
+    assert levMetric('żż', 'rzrz') == 0.5
+    assert levMetric('rzrz', 'żż') == 0.5
+
+    # other
+    assert levMetric('biurko', 'pióro') == 2.25
+    assert levMetric('abcde', 'ąbćdę') == 0.75
+    assert levMetric('bende', 'będę') == 0.5
+    assert levMetric('gżegżółka', 'grzegrzulka') == 1
     assert levMetric('bendórzę', 'będużą') == 1    # en -> ę, ó -> u, rz -> ż, ę -> ą
 
