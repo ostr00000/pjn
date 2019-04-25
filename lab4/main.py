@@ -1,7 +1,7 @@
 import os
 
 from corpus_collector import CorpusCollector
-from matcher import bestCorrectWord, levErrorProbability
+from matcher import levErrorProbability, best10Words
 
 
 def main():
@@ -13,11 +13,18 @@ def main():
         cc.update(cp)
 
     prob = cc.getProbability()
+    for wrongWord in getWords():
+        bestWord = best10Words(wrongWord, levErrorProbability, prob)
+        print(f"Best word: {bestWord}")
+
+
+def getWords():
+    yield 'bende'
+    yield 'cut'
     while True:
-        wrongWord = input('Get wrong word:\n').lstrip().rstrip().lower()
-        if wrongWord:
-            bestWord = bestCorrectWord(wrongWord, levErrorProbability, prob)
-            print(f"Best word: {bestWord}")
+        inp = input('Get wrong word:\n').lstrip().rstrip().lower()
+        if inp:
+            yield inp
 
 
 if __name__ == '__main__':

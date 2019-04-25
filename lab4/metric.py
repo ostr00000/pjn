@@ -22,6 +22,7 @@ def levMetric(xStr: str, yStr: str):
             leftInc = 0 if doubleWord else 1
             doubleWord = False
 
+            # advanced option
             if x == y:
                 eq = 0
             elif len(yStr[i - 1:i + 1]) == 2 and yStr[i - 1:i + 1] in similarLetters.get(x, ()):
@@ -34,6 +35,9 @@ def levMetric(xStr: str, yStr: str):
                 eq = 0.25
             else:
                 eq = 1
+
+            # simple option
+            # eq = 1 if x != y else 0
 
             newVal = min((upper + 1, skew + eq, left + leftInc))
             skew = upper
