@@ -6,6 +6,8 @@ from util import SubprocessSplitter
 
 
 class LocalCache:
+    THREADS = 8
+
     @classmethod
     def load(cls, name, orFunction=lambda: None):
         path = os.path.join('.cache', name)
@@ -20,7 +22,8 @@ class LocalCache:
 
     @staticmethod
     def loadGraph(name, size=100):
-        gr = LocalCache.load(name)
+        filename = f"{name}_{size}.graphModel"
+        gr = LocalCache.load(filename)
         if gr:
             return gr
 
@@ -28,15 +31,15 @@ class LocalCache:
 
         gm = GraphModel(None, grList[0].degree)
         gm.graphs.extend(gr.graphs for gr in grList)
-        LocalCache.save(gm, os.path.join('.cache', name))
+        LocalCache.save(gm, os.path.join('.cache', filename))
 
     @staticmethod
     def _createGraph(baseName, size):
         with SubprocessSplitter() as ss:
-            chunkSize = size // 8
+            chunkSize = size / LocalCache.THREADS
             names = []
-            for part in range(8):
-                n = f'{baseName}_{part*chunkSize}:{(part+1)*chunkSize}.part'
+            for part in range(LocalCache.THREADS):
+                n = f'{baseName}_{int(part*chunkSize)}:{int((part+1)*chunkSize)}.part'
                 names.append(n)
                 ss.run(n)
 

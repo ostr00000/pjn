@@ -18,12 +18,12 @@ class GraphModel:
     def processGraphs(self, sliceObj=slice(200)):
         self.graphs = list(map(self._createGraph, self.loader.data[sliceObj]))
 
-    @counterDecFactory(50_000)
+    # @counterDecFactory(50_000)
     def _createGraph(self, note: List[str]):
         graph = nx.DiGraph()
 
         maxRange = len(note)
-        for start in range(len(self.loader.words)):
+        for start in range(maxRange):
             for end in range(start,
                              start + self.degree if start + self.degree < maxRange else maxRange):
                 n1, n2 = note[start], note[end]
@@ -32,4 +32,5 @@ class GraphModel:
                 except KeyError:
                     graph.add_edge(n1, n2, repeat=1)
 
-        return graph
+        sparseGraph = nx.to_scipy_sparse_matrix(graph, self.loader.nodelist)
+        return sparseGraph

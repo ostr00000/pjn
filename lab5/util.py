@@ -1,3 +1,4 @@
+import time
 import types
 from subprocess import Popen
 
@@ -18,6 +19,15 @@ def counterDecFactory(predictedMaxCounter):
         return decorate(fun, _counterDec)
 
     return counterDec
+
+
+@decorator
+def timeDec(fun, *args, **kwargs):
+    time0 = time.time()
+    try:
+        return fun(*args, **kwargs)
+    finally:
+        print(time.time() - time0)
 
 
 @decorator

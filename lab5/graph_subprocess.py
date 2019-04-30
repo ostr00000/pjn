@@ -1,19 +1,24 @@
 import sys
-import os
-from lab5.graph import GraphModel
+
 from lab5.cache import LocalCache
+from lab5.graph import GraphModel
+from lab5.loader import Loader
+from lab5.util import timeDec
 
 
+@timeDec
 def main():
-    graphName: str = sys.argv[0].split('.')[0]
-    baseName = graphName.split('_')
+    graphName = sys.argv[1]
+    print(graphName)
+    graphData: str = graphName.split('.')[0]
+    baseName = graphData.split('_')
     degree = int(baseName[0][-1])
 
     baseSlice = baseName[1].split(':')
     graphSlice = slice(int(baseSlice[0]), int(baseSlice[1]))
 
     def calcGraph():
-        loader = LocalCache.load('loader')
+        loader: Loader = LocalCache.load('loader')
         gm = GraphModel(loader, degree)
         gm.processGraphs(graphSlice)
         return gm
