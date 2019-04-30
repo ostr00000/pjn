@@ -2,13 +2,14 @@ import os
 import pickle
 
 from graph import GraphModel
-from util import SubprocessSplitter
+from util import SubprocessSplitter, entryExitDec
 
 
 class LocalCache:
     THREADS = 8
 
     @classmethod
+    @entryExitDec
     def load(cls, name, orFunction=lambda: None):
         path = os.path.join('.cache', name)
         if os.path.exists(path):

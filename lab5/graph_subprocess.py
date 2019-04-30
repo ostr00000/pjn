@@ -18,7 +18,7 @@ def main():
     graphSlice = slice(int(baseSlice[0]), int(baseSlice[1]))
 
     def calcGraph():
-        loader: Loader = LocalCache.load('loader')
+        loader: Loader = LocalCache.load('loaderPrimaryForm')
         gm = GraphModel(loader, degree)
         gm.processGraphs(graphSlice)
         return gm

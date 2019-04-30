@@ -31,7 +31,7 @@ def timeDec(fun, *args, **kwargs):
 
 
 @decorator
-def logDec(fun, *args, **kwargs):
+def argumentDec(fun, *args, **kwargs):
     values = [f"{fun.__name__}"]
     if args:
         values.append(f"args: {','.join(map(str, args))}")
@@ -41,11 +41,20 @@ def logDec(fun, *args, **kwargs):
     return fun(*args, **kwargs)
 
 
+@decorator
+def entryExitDec(fun, *args, **kwargs):
+    print(f"Start run function: {fun.__name__}")
+    try:
+        return fun(*args, **kwargs)
+    finally:
+        print(f"End run function: {fun.__name__}")
+
+
 class MetaDec(type):
     def __new__(mcs, name, bases, namespace):
         for valName, valFunc in namespace.items():  # type: str, 'Any'
             if isinstance(valFunc, types.FunctionType) and not valName.startswith('__'):
-                namespace[valName] = logDec(valFunc)
+                namespace[valName] = argumentDec(valFunc)
 
         return super().__new__(mcs, name, bases, namespace)
 

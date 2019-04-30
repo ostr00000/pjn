@@ -7,8 +7,10 @@ from pyprof2calltree import visualize
 
 from lab3.stop_list import StopList
 from lab5.cache import LocalCache
+from primary_form import PrimaryForm
 
 dataPath = os.path.join('data', 'pap.txt')
+primaryFormPath = os.path.join('data', 'odm.txt')
 
 
 class Loader:
@@ -18,15 +20,22 @@ class Loader:
     def zero():
         return 0
 
-    def __init__(self, path=dataPath):
+    def __init__(self, path=dataPath, primaryForm: PrimaryForm = None):
         self.data = []
-        self.words = defaultdict(self.zero)
+        self._words = defaultdict(self.zero)
+
+        self._primaryForm = primaryForm
         self._load(path)
+        self._primaryForm = None
         print("loaded")
+
+        self._removeHapaxLegomena()
         self._useStopList()
         print("stopListed")
-        self.nodelist = sorted(self.words.keys())
-        print("sorted")
+
+        self.nodelist = sorted(self._words.keys())
+        self._words = None
+        print("sorted")  # 250_000 -> 40_600 -> 29_700
 
     def _load(self, path):
         lastData = []
@@ -39,19 +48,31 @@ class Loader:
 
                 line = line.lstrip().rstrip().lower()
                 line = list(filter(None, self.SPLIT_PATTERN.split(line)))
+                if self._primaryForm:
+                    line = list(map(self.getPrimaryForm, line))
+                    line = list(filter(None, line))
                 for word in line:
-                    self.words[word] += 1
+                    self._words[word] += 1
                 lastData.extend(line)
 
         self.data.pop(0)
         self.data.append(lastData)
 
+    def getPrimaryForm(self, word):
+        try:
+            return self._primaryForm.dictionary[word]
+        except KeyError:
+            return None
+
+    def _removeHapaxLegomena(self):
+        self._words = {k: v for k, v in self._words.items() if v > 1}
+
     def _useStopList(self):
         sl = StopList()
-        sl.words = self.words
+        sl.words = self._words
         sl.excludeByWordsMargin(1000)
         for ex in sl.excluded:
-            del self.words[ex]
+            del self._words[ex]
 
         for i, note in enumerate(self.data):
             self.data[i] = [word for word in note if word not in sl.excluded]
@@ -60,13 +81,15 @@ class Loader:
 def getGraph(loader):
     from graph import GraphModel
     g = GraphModel(loader)
-    g.processGraphs(slice(100))
+    g.processGraphs(slice(1000))
     return g
 
 
 def main():
-    loader = LocalCache.load('loader', lambda: Loader())
-    # LocalCache.loadGraph('graph2', size=1000)
+    primaryForm = LocalCache.load('primaryForm', lambda: PrimaryForm(primaryFormPath))
+    loader = LocalCache.load('loaderPrimaryForm', lambda: Loader(primaryForm=primaryForm))
+
+    LocalCache.loadGraph('graph2', size=51555)
 
     # profiler = Profile()
     # runStr = "getGraph(loader)"
@@ -74,17 +97,19 @@ def main():
     # visualize(profiler.getstats())
 
     g = getGraph(loader)
-    from pympler import asizeof
-    print(asizeof.asizeof(g))
 
 
 if __name__ == '__main__':
     main()
 
-""" 0 - same process
+""" 0 - same process, 00 - primaryForm+scipy 000 - hapaxLegomena
 Process \ text: 
     100     1000
+
+000 1.2s    12s
+00  2s      20s
 0   5s      50s
+
 1   8.2     55.7
 2   6.7     32
 3   7       24.7

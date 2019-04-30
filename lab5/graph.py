@@ -18,7 +18,7 @@ class GraphModel:
     def processGraphs(self, sliceObj=slice(200)):
         self.graphs = list(map(self._createGraph, self.loader.data[sliceObj]))
 
-    # @counterDecFactory(50_000)
+    # @counterDecFactory(200)
     def _createGraph(self, note: List[str]):
         graph = nx.DiGraph()
 
