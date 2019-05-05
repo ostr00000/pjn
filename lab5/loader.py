@@ -1,12 +1,9 @@
 import os
-from cProfile import Profile
 from collections import defaultdict
 
 import regex
-from pyprof2calltree import visualize
 
 from lab3.stop_list import StopList
-from lab5.cache import LocalCache
 from primary_form import PrimaryForm
 
 dataPath = os.path.join('data', 'pap.txt')
@@ -23,6 +20,7 @@ class Loader:
     def __init__(self, path=dataPath, primaryForm: PrimaryForm = None):
         self.data = []
         self._words = defaultdict(self.zero)
+        self._common = defaultdict(self.zero)
 
         self._primaryForm = primaryForm
         self._load(path)
@@ -30,6 +28,8 @@ class Loader:
         print("loaded")
 
         self._removeHapaxLegomena()
+        self.removeCommon()
+        self._common = None
         self._useStopList()
         print("stopListed")
 
@@ -43,6 +43,8 @@ class Loader:
             for line in file:
                 if line.startswith('#'):
                     self.data.append(lastData)
+                    for common in set(lastData):
+                        self._common[common] += 1
                     lastData = []
                     continue
 
@@ -57,6 +59,8 @@ class Loader:
 
         self.data.pop(0)
         self.data.append(lastData)
+        for common in set(lastData):
+            self._common[common] += 1
 
     def getPrimaryForm(self, word):
         try:
@@ -77,45 +81,12 @@ class Loader:
         for i, note in enumerate(self.data):
             self.data[i] = [word for word in note if word not in sl.excluded]
 
+    def removeCommon(self):
+        total = len(self.data)
+        factor = 0.7 * total
+        excluded = [key for key, val in self._common.items() if val > factor]
+        for ex in excluded:
+            del self._words[ex]
 
-def getGraph(loader):
-    from graph import GraphModel
-    g = GraphModel(loader)
-    g.processGraphs(slice(1000))
-    return g
-
-
-def main():
-    primaryForm = LocalCache.load('primaryForm', lambda: PrimaryForm(primaryFormPath))
-    loader = LocalCache.load('loaderPrimaryForm', lambda: Loader(primaryForm=primaryForm))
-
-    LocalCache.loadGraph('graph2', size=51555)
-
-    # profiler = Profile()
-    # runStr = "getGraph(loader)"
-    # profiler.runctx(runStr, globals(), locals())
-    # visualize(profiler.getstats())
-
-    g = getGraph(loader)
-
-
-if __name__ == '__main__':
-    main()
-
-""" 0 - same process, 00 - primaryForm+scipy 000 - hapaxLegomena
-Process \ text: 
-    100     1000
-
-000 1.2s    12s
-00  2s      20s
-0   5s      50s
-
-1   8.2     55.7
-2   6.7     32
-3   7       24.7
-4   7.8     20.3
-5   9.3     24
-6   10.5    23.3
-7   12.4    24.8
-8   12.8      26
-"""
+        for i, note in enumerate(self.data):
+            self.data[i] = [word for word in note if word not in excluded]

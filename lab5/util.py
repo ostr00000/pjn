@@ -1,6 +1,5 @@
 import time
 import types
-from subprocess import Popen
 
 from decorator import decorator, decorate
 
@@ -57,19 +56,3 @@ class MetaDec(type):
                 namespace[valName] = argumentDec(valFunc)
 
         return super().__new__(mcs, name, bases, namespace)
-
-
-class SubprocessSplitter:
-    def __init__(self):
-        self.processes = []
-
-    def run(self, name: str):
-        p = Popen(['python3', 'graph_subprocess.py', name])
-        self.processes.append(p)
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        for p in self.processes:  # type: Popen
-            p.wait()
