@@ -6,7 +6,12 @@ from decorator import decorator, decorate
 
 def _counterDec(fun, *args, **kwargs):
     c, m = fun.counter, fun.predictedMaxCounter
-    print(f"{c}/{m}[{min(100, c/m*100):.3f}%]")
+    if c == m:
+        c = 0
+
+    if c % 10 == 0:
+        print(f"{c}/{m}[{min(100, c/m*100):.3f}%]")
+
     fun.counter += 1
     return fun(*args, **kwargs)
 
