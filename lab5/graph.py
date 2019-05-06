@@ -38,6 +38,13 @@ class GraphModel:
         vectorFromMatrix = sparseGraph.reshape(len(self.loader.nodelist) ** 2)
         return vectorFromMatrix
 
+    @property
+    def vectors(self):
+        return self.graphs
+
+    def __str__(self):
+        return f"Graph[degree={self.degree}]"
+
 
 """
 from pympler import asizeof

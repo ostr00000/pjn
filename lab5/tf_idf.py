@@ -51,3 +51,6 @@ class TfidfModel:
             self.vectors.append(sparse.csr_matrix(termFrequency))
 
         self.vectors = vstack(self.vectors)
+
+    def __str__(self):
+        return "Tf_idf"
