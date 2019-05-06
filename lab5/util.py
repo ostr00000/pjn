@@ -61,3 +61,23 @@ class MetaDec(type):
                 namespace[valName] = argumentDec(valFunc)
 
         return super().__new__(mcs, name, bases, namespace)
+
+
+class LogIter:
+    def __init__(self, val, printStep=100):
+        self.val = val
+        self.step = printStep
+
+        self.it = None
+        self.counter = None
+
+    def __iter__(self):
+        self.it = iter(self.val)
+        self.counter = 0
+        return self
+
+    def __next__(self):
+        self.counter += 1
+        if self.counter % self.step == 0:
+            print(f"iter:{self.counter}")
+        return next(self.it)

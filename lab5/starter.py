@@ -6,6 +6,7 @@ from compare import printSimilarText
 from graph import GraphModel
 from loader import Loader
 from primary_form import PrimaryForm
+from tf_idf import TfidfModel
 from util import timeDec
 
 primaryFormPath = os.path.join('data', 'odm.txt')
@@ -21,7 +22,6 @@ def getLoaderPrimaryForm() -> Loader:
 
 def getGraph(degree) -> GraphModel:
     def _getGraph():
-        from graph import GraphModel
         loader = getLoaderPrimaryForm()
         g = GraphModel(loader, degree)
         g.processGraphs(slice(51555))
@@ -30,15 +30,33 @@ def getGraph(degree) -> GraphModel:
     return LocalCache.load(f'graph{degree}', _getGraph)
 
 
+def getTfIdfModel() -> TfidfModel:
+    def _tfIdf():
+        loader = getLoaderPrimaryForm()
+        tfidf = TfidfModel(loader)
+        tfidf.calcVector()
+        return tfidf
+
+    return LocalCache.load("tfidf", _tfIdf)
+
+
 @timeDec
-def findBest(graphModelDegree, noteNumber):
+def findBestInTfIdfModel(noteNumber):
+    model = getTfIdfModel()
+    printSimilarText(noteNumber, model.vectors, model.loader)
+
+
+@timeDec
+def findBestInGraphModel(graphModelDegree, noteNumber):
     graph = getGraph(graphModelDegree)
-    loader = getLoaderPrimaryForm()
-    printSimilarText(noteNumber, graph.graphs, loader)
+    printSimilarText(noteNumber, graph.graphs, graph.loader)
 
 
 def main():
-    findBestForNote0 = partial(findBest, noteNumber=0)
+    noteNumber = 0
+    findBestInTfIdfModel(noteNumber)
+
+    findBestForNote0 = partial(findBestInGraphModel, noteNumber=noteNumber)
     findBestForNote0(graphModelDegree=1)
     findBestForNote0(graphModelDegree=2)
     findBestForNote0(graphModelDegree=3)

@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from scipy.sparse import coo_matrix
 from sklearn.metrics.pairwise import cosine_similarity
@@ -5,8 +7,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from loader import Loader
 
 
-def getSimilarityVector(baseIndex, vectors: coo_matrix):
-    baseVector = vectors.tocsr()[baseIndex]
+def getSimilarityVector(baseIndex, vectors: Union[coo_matrix, np.ndarray]):
+    if isinstance(vectors, coo_matrix):
+        vectors = vectors.tocsr()
+
+    baseVector = vectors[baseIndex]
     out = cosine_similarity(vectors, baseVector)
     out = out[:, 0]
     return out
@@ -18,7 +23,7 @@ def getBestNIndexes(vector: np.ndarray, bestN: int):
     return sortedBestN
 
 
-def printSimilarText(baseIndex: int, vectors: coo_matrix, loader: Loader):
+def printSimilarText(baseIndex: int, vectors: Union[coo_matrix, np.ndarray], loader: Loader):
     simVec = getSimilarityVector(baseIndex, vectors)
     simInd = getBestNIndexes(simVec, 10)
 
