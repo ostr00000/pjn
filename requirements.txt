@@ -4,3 +4,4 @@ decorator
 scipy
 numpy
 regex
+gensim
