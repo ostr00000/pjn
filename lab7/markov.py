@@ -1,7 +1,9 @@
+import numpy as np
 import os
 from collections import OrderedDict
 from functools import partial
 from operator import itemgetter
+import pprint
 from typing import List, Dict, Tuple
 
 from author import Author
@@ -44,20 +46,27 @@ def main():
         'Agata_Christie': 'Tajemnica_Wawrzynow.txt',
         'Janusz_A_Zajdel': 'Awaria.txt',
         'Paulo_Coelho': 'Alchemik.txt',
-        'George Orwell': 'Orwell_George_-_Rok_1984.txt',
+        'George_Orwell': 'Orwell_George_-_Rok_1984.txt',
         'Sapkowski_Andrzej': 'Pani_Jeziora.txt',
         'Andre_Norton': 'Andre_Norton_-_Prekursorka.txt',
         'Dick_Philip_K': 'Dick_Philip_K_-_Kolonia.txt',
-        'Goraj_Piotr': 'Goraj_Piotr_-_Negatyw.txt',
+        'Gordon_R_Dickson': 'Gordon_R_Dickson_-_Nekromanta.txt',
         'Lem_Stanislaw': 'Lem_Stanislaw_-_Bajki_robotow.txt',
         'Terry_Pratchett': 'Terry_Pratchett_-_Ruchome_Obrazki.txt',
     }
-
+    firstN = 10
+    scores = []
     for name, testBook in testBooks.items():
         pFindBest = partial(findBest, tuple(testBooks.values()), testBook)
-        result = LocalCache.load(f'{name}.scoreResult', pFindBest, True)
+        result = LocalCache.load(f'{name}.scoreResult', pFindBest)
         score = list(OrderedDict(result).keys()).index(name)
+        scores.append(score)
+
         print(f"Author: {name} has score: {score} for book: {testBook}")
+        print(f"First {firstN} best results: \n{pprint.pformat(result[:firstN])}\n\n")
+    else:
+        print(f"scores: {scores}")
+        print(f"Average score: {sum(scores)/len(testBooks)}, std: {np.std(scores)}")
 
 
 if __name__ == '__main__':

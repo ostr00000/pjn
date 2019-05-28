@@ -21,7 +21,8 @@ def _getSingleAuthor(authorName):
         author.calcProbability()
         return author
 
-    return LocalCache.load(authorName, createAuthor)
+    return LocalCache.load(authorName, createAuthor,
+                           path=os.path.join('.cache', 'authors', authorName))
 
 
 def _getBooks():

@@ -4,7 +4,7 @@ import numpy as np
 from scipy.sparse import coo_matrix
 from sklearn.metrics.pairwise import cosine_similarity
 
-from accessFunctions import getAllModels, getLoaderPrimaryForm
+from access_functions import getAllModels, getLoaderPrimaryForm
 from classification import Classification
 from loader import Loader
 from util import LogIter

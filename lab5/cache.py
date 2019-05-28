@@ -1,17 +1,16 @@
 import os
 import pickle
 
-from util import entryExitDec
+# from util import entryExitDec
 
 
 class LocalCache:
-    THREADS = 8
 
     @classmethod
-    @entryExitDec
-    def load(cls, name, orFunction=lambda: None):
-        path = os.path.join('.cache', name)
-        if os.path.exists(path):
+    # @entryExitDec
+    def load(cls, name, orFunction=lambda: None, forceReload=False, path=None):
+        path = path or os.path.join('.cache', name)
+        if not forceReload and os.path.exists(path):
             with open(path, 'rb') as file:
                 obj = pickle.load(file)
                 return obj

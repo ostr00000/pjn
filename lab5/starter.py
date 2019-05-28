@@ -1,6 +1,6 @@
 from functools import partial
 
-from accessFunctions import getTfIdfModel, getGraph
+from access_functions import getTfIdfModel, getGraph
 from compare import printSimilarText, printResultFromAllModels, scoreModels
 from util import timeDec
 
