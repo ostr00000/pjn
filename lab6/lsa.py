@@ -7,7 +7,7 @@ from gensim.models import LsiModel
 from gensim.similarities import MatrixSimilarity, SparseMatrixSimilarity
 
 from lab5.access_functions import getTfIdfModel
-from lab5.compare import noteTestId
+from lab5.compare import noteTestId, noteResultIds
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ def getMatrixSimilarity(tfidfModel, lsiModel=None) -> SparseMatrixSimilarity:
         if lsiModel is None:
             lsiModel = getLsiModel(tfidfModel)
         sim = SparseMatrixSimilarity(
-            lsiModel[corpus], num_best=10,
+            lsiModel[corpus], num_best=21,
             num_features=tfidfModel.vectors.shape[0])
         sim.save(similarityPath)
     return sim
@@ -52,7 +52,12 @@ def main():
     testCorpus = getTestCorpus(tfidfModel)
     testVector = lsiModel[testCorpus]
     sim = index[testVector]
-    logger.info(pprint.pformat(sim))
+
+    result = [(id_+1, val, id_ in noteResultIds[noteTestId])
+              for id_, val in sim[0]
+              if id_ != noteTestId]
+
+    logger.info(f"\nNote id, similarity %, recognised\n{pprint.pformat(result)}")
 
 
 if __name__ == '__main__':
