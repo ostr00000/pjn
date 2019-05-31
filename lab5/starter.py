@@ -18,7 +18,7 @@ def findBestInGraphModel(graphModelDegree, noteNumber):
 
 
 def main():
-    noteNumber = 0
+    noteNumber = 1777
     findBestInTfIdfModel(noteNumber)
 
     findBestForNote0 = partial(findBestInGraphModel, noteNumber=noteNumber)
@@ -29,6 +29,6 @@ def main():
 
 
 if __name__ == '__main__':
-    # main()
-    # printResultFromAllModels()
+    main()
+    printResultFromAllModels()
     scoreModels()

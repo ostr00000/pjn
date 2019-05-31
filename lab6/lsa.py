@@ -6,7 +6,7 @@ from gensim.matutils import Sparse2Corpus
 from gensim.models import LsiModel
 from gensim.similarities import MatrixSimilarity, SparseMatrixSimilarity
 
-from lab5.accessFunctions import getTfIdfModel
+from lab5.access_functions import getTfIdfModel
 from lab5.compare import noteTestId
 
 logger = logging.getLogger(__name__)

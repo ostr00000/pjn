@@ -26,7 +26,7 @@ def nBestWords(nBest: int, errorWord: str, fun: Callable[[str, str], float],
 
         pq.put((val, correctWord))
 
-    probAndWords = reversed([pq.get() for _ in range(nBest + 1)])
+    probAndWords = list(reversed([pq.get() for _ in range(nBest + 1)]))
     words = [word for prob, word in probAndWords[:-1] if prob > 1e-7]
     return words
 

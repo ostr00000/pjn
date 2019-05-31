@@ -21,6 +21,11 @@ def main():
 def getWords():
     yield 'bende'
     yield 'cut'
+    yield 'bendzie'
+    yield 'morze'
+    yield 'bulem'
+    yield 'bydlencej'
+    yield 'cieszki'
     while True:
         inp = input('Get wrong word:\n').lstrip().rstrip().lower()
         if inp:
