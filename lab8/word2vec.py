@@ -4,8 +4,11 @@ import random
 from pprint import pprint
 from typing import List, Tuple
 
+import gensim.utils
 import numpy as np
+import regex as re
 from gensim.corpora import MmCorpus, WikiCorpus, Dictionary
+from gensim.corpora.wikicorpus import TOKEN_MAX_LEN, TOKEN_MIN_LEN
 from gensim.models import KeyedVectors, Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -17,9 +20,15 @@ corpusPath = os.path.join('data', 'corpus.save')
 modelPath = os.path.join('data', 'w2v.save')
 dictPath = os.path.join('data', 'dict.save')
 
+POLISH_WORDS = re.compile(r'^[aąbcćdeęfghijklłmnńoóprsśtuwyzźż]+$', re.UNICODE)
 
-def simple_tokenize():
-    pass
+
+def tokenize(content, token_min_len=TOKEN_MIN_LEN, token_max_len=TOKEN_MAX_LEN, lower=True):
+    return [gensim.utils.to_unicode(token)
+            for token in gensim.utils.tokenize(content, lower=lower, errors='ignore')
+            if (token_min_len <= len(token) <= token_max_len
+                and not token.startswith('_')
+                and bool(POLISH_WORDS.search(token)))]
 
 
 def getInputPath() -> str:
@@ -51,7 +60,7 @@ class Model:
         try:
             wc = MmCorpus(corpusPath)
         except FileNotFoundError:
-            wc = WikiCorpus(getInputPath())
+            wc = WikiCorpus(getInputPath(), tokenizer_func=tokenize)
             wc.dictionary.save(dictPath)
             MmCorpus.serialize(corpusPath, wc)
         return wc
