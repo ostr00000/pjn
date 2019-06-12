@@ -2,18 +2,24 @@ import logging
 import os
 import random
 from pprint import pprint
-from typing import List, Tuple, Dict
+from typing import List, Tuple
 
 import numpy as np
-from gensim.corpora import WikiCorpus, MmCorpus, Dictionary
-from gensim.models import Word2Vec, KeyedVectors
+from gensim.corpora import MmCorpus, WikiCorpus, Dictionary
+from gensim.models import KeyedVectors, Word2Vec
 from sklearn.metrics.pairwise import cosine_similarity
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s : %(levelname)s : %(message)s')
 
+logger = logging.getLogger(__name__)
+
 corpusPath = os.path.join('data', 'corpus.save')
 modelPath = os.path.join('data', 'w2v.save')
 dictPath = os.path.join('data', 'dict.save')
+
+
+def simple_tokenize():
+    pass
 
 
 def getInputPath() -> str:
@@ -23,111 +29,114 @@ def getInputPath() -> str:
     raise ValueError
 
 
-def getCorpus():
-    try:
-        wc = MmCorpus(corpusPath)
-    except FileNotFoundError:
-        wc = WikiCorpus(getInputPath())
-        wc.dictionary.save(dictPath)
-        MmCorpus.serialize(corpusPath, wc)
-    return wc
+class Model:
 
+    def __init__(self):
+        self.model = self._getModel()
+        self.tokenMap = self._getDictionary().token2id
 
-def getModel() -> KeyedVectors:
-    try:
-        w2v = KeyedVectors.load(modelPath)
-    except FileNotFoundError:
-        wc = getCorpus()
-        w2v = Word2Vec(corpus_file=corpusPath, workers=7, window=5,
-                       size=100, iter=1, sg=0)
-        w2v.wv.save(modelPath)
-    return w2v
-
-
-def loadDict() -> Dictionary:
-    obj = Dictionary.load(dictPath)
-    if isinstance(obj, Dictionary):
-        return obj
-    raise ValueError
-
-
-def printSimilarity(vectors):
-    sim = (cosine_similarity(vectors, vectors) + 1) / 2
-    print(sim)
-    print(np.sum(sim))
-
-
-def checkRelation(model: KeyedVectors, tokenMap: Dict, words: List[Tuple[str, str]]):
-    vectors = []
-
-    for wordA, wordB in words:
-        wordIdA = str(tokenMap[wordA])
-        wordIdB = str(tokenMap[wordB])
+    @staticmethod
+    def _getModel() -> KeyedVectors:
         try:
-            difVector = model[wordIdA] - model[wordIdB]
-        except KeyError:
-            logging.error(f"At least one key not found ({wordA}, {wordB})")
-        else:
-            vectors.append(difVector)
+            w2v = KeyedVectors.load(modelPath)
+        except FileNotFoundError:
+            Model._getCorpus()
+            w2v = Word2Vec(corpus_file=corpusPath, workers=7, window=5,
+                           size=300, iter=15, sg=1)
+            w2v.wv.save(modelPath)
+        return w2v
 
-    printSimilarity(vectors)
+    @staticmethod
+    def _getCorpus():
+        try:
+            wc = MmCorpus(corpusPath)
+        except FileNotFoundError:
+            wc = WikiCorpus(getInputPath())
+            wc.dictionary.save(dictPath)
+            MmCorpus.serialize(corpusPath, wc)
+        return wc
 
+    @staticmethod
+    def _getDictionary() -> Dictionary:
+        obj = Dictionary.load(dictPath)
+        if isinstance(obj, Dictionary):
+            return obj
+        raise ValueError
 
-def exampleSimilarity(model, tokenMap):
-    def getRandom():
-        return str(random.randint(0, len(tokenMap)))
+    def exampleSimilarity(self):
+        def getRandom():
+            return str(random.randint(0, len(self.tokenMap)))
 
-    def getVector():
-        while True:
-            num = getRandom()
+        def getVector():
+            while True:
+                num = getRandom()
+                try:
+                    return self.model[num]
+                except KeyError:
+                    pass
+
+        vectors = []
+        for _ in range(5):
+            a = getVector()
+            b = getVector()
+            vectors.append(a - b)
+
+        self.printSimilarity(vectors)
+
+    def printMostSimilar(self, positive=(), negative=()):
+        if isinstance(positive, str):
+            positive = (positive,)
+        if isinstance(negative, str):
+            negative = (negative,)
+
+        sim = self.model.most_similar(
+            positive=[str(self.tokenMap[t]) for t in positive],
+            negative=[str(self.tokenMap[t]) for t in negative],
+            topn=1000,
+        )
+
+        rev = {str(v): k for k, v in self.tokenMap.items()}
+        newSim = [(rev[k], v) for k, v in sim]
+        pprint(newSim)
+
+    @staticmethod
+    def printSimilarity(vectors):
+        sim = (cosine_similarity(vectors, vectors) + 1) / 2
+        print(sim)
+        print(np.sum(sim))
+
+    def checkRelation(self, words: List[Tuple[str, str]]):
+        vectors = []
+
+        for wordA, wordB in words:
+            wordIdA = str(self.tokenMap[wordA])
+            wordIdB = str(self.tokenMap[wordB])
             try:
-                return model[num]
+                difVector = self.model[wordIdA] - self.model[wordIdB]
             except KeyError:
-                pass
+                logging.error(f"At least one key not found ({wordA}, {wordB})")
+            else:
+                vectors.append(difVector)
 
-    vectors = []
-    for _ in range(5):
-        a = getVector()
-        b = getVector()
-        vectors.append(a - b)
-
-    printSimilarity(vectors)
-
-
-def printMostSimilar(model, tokenMap, positive=(), negative=()):
-    if isinstance(positive, str):
-        positive = (positive,)
-    if isinstance(negative, str):
-        negative = (negative,)
-
-    sim = model.most_similar(
-        positive=[str(tokenMap[t]) for t in positive],
-        negative=[str(tokenMap[t]) for t in negative],
-        topn=20,
-    )
-
-    rev = {str(v): k for k, v in tokenMap.items()}
-    newSim = [(rev[k], v) for k, v in sim]
-    pprint(newSim)
+        self.printSimilarity(vectors)
 
 
 def main():
-    model = getModel()
-    tokenMap = loadDict().token2id
-    checkRelation(model, tokenMap, [
+    model = Model()
+    model.checkRelation([
         ("król", "królowa"),
         ("mężczyzna", "kobieta"),
     ])
-    checkRelation(model, tokenMap, [
+    model.checkRelation([
         ('atakować', 'atakował'),
         ('zrobić', 'zrobił'),
         ('kupić', 'kupił'),
         ('malować', 'namalował'),
         ('tworzyć', 'stworzył'),
     ])
-    exampleSimilarity(model, tokenMap)
-    printMostSimilar(
-        model, tokenMap, positive=('król', 'kobieta'), negative='mężczyzna')
+    model.exampleSimilarity()
+    model.printMostSimilar(positive=('król', 'kobieta'), negative='mężczyzna')
+    model.printMostSimilar(positive='mysz')
 
 
 if __name__ == '__main__':
