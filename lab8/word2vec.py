@@ -15,6 +15,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 logging.basicConfig(level=logging.INFO, format='%(asctime)s : %(levelname)s : %(message)s')
 
 logger = logging.getLogger(__name__)
+np.set_printoptions(precision=3)
 
 corpusPath = os.path.join('data', 'corpus.save')
 modelPath = os.path.join('data', 'w2v.save')
@@ -101,7 +102,7 @@ class Model:
         sim = self.model.most_similar(
             positive=[str(self.tokenMap[t]) for t in positive],
             negative=[str(self.tokenMap[t]) for t in negative],
-            topn=1000,
+            topn=50,
         )
 
         rev = {str(v): k for k, v in self.tokenMap.items()}
@@ -112,9 +113,13 @@ class Model:
     def printSimilarity(vectors):
         sim = (cosine_similarity(vectors, vectors) + 1) / 2
         print(sim)
-        print(np.sum(sim))
+        num = (len(vectors) ** 2 - len(vectors)) / 2
+        avr = ((np.sum(sim) - len(vectors)) / 2) / num
+        print(f"Avr under diagonal: {avr}")
 
-    def checkRelation(self, words: List[Tuple[str, str]]):
+    def checkRelation(self, relationName, words: List[Tuple[str, str]]):
+        print()
+        print(f"Relation: {relationName}")
         vectors = []
 
         for wordA, wordB in words:
@@ -132,20 +137,53 @@ class Model:
 
 def main():
     model = Model()
-    model.checkRelation([
-        ("król", "królowa"),
-        ("mężczyzna", "kobieta"),
-    ])
-    model.checkRelation([
+    model.checkRelation("czas teraźniejszy - czas przeszły", [
         ('atakować', 'atakował'),
         ('zrobić', 'zrobił'),
         ('kupić', 'kupił'),
-        ('malować', 'namalował'),
-        ('tworzyć', 'stworzył'),
+        ('malować', 'malował'),
+        ('tworzyć', 'tworzył'),
     ])
-    model.exampleSimilarity()
-    model.printMostSimilar(positive=('król', 'kobieta'), negative='mężczyzna')
-    model.printMostSimilar(positive='mysz')
+    model.checkRelation("mianownik - dopełniacz", [
+        ("król", "króla"),
+        ("polska", "polski"),
+        ("dom", "domu"),
+        ("model", "modelu"),
+        ("wieża", "wieży"),
+    ])
+    model.checkRelation("liczba pojendyńcza - liczb mnoga", [
+        ("towar", "towary"),
+        ("zamek", "zamki"),
+        ("dom", "domy"),
+        ("krzesło", "krzesła"),
+        ("samochód", "samochody"),
+    ])
+
+    model.checkRelation("mężczyzna  - kobieta", [
+        ("król", "królowa"),
+        ("mężczyzna", "kobieta"),
+        ("brat", "siostra"),
+        ("wujek", "ciocia"),
+        ("dziadek", "babcia"),
+    ])
+    model.checkRelation("państwo - stolica", [
+        ("polska", "warszawa"),
+        ("niemcy", "berlin"),
+        ("rosja", "moskwa"),
+        ("włochy", "rzym"),
+        ("hiszpania", "madryt"),
+    ])
+    model.checkRelation("postać - funkcja/zawód", [
+        ("chrobry", "król"),
+        ("poniatowski", "król"),
+        ("chopin", "pianista"),
+        ("mickiewicz", "pisarz"),
+        ("sienkiewicz", "pisarz"),
+    ])
+
+    # model.exampleSimilarity()
+    # model.printMostSimilar(positive=('król', 'kobieta'), negative='mężczyzna')
+    # model.printMostSimilar(positive='mysz')
 
 
 if __name__ == '__main__':
