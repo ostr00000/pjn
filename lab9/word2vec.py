@@ -15,7 +15,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 logging.basicConfig(level=logging.INFO, format='%(asctime)s : %(levelname)s : %(message)s')
 
 logger = logging.getLogger(__name__)
-np.set_printoptions(precision=3)
+np.set_printoptions(precision=3, suppress=True)
 
 corpusPath = os.path.join('data', 'corpus.save')
 modelPath = os.path.join('data', 'w2v.save')
@@ -111,10 +111,10 @@ class Model:
 
     @staticmethod
     def printSimilarity(vectors):
-        sim = (cosine_similarity(vectors, vectors) + 1) / 2
+        sim = cosine_similarity(vectors, vectors)
         print(sim)
-        num = (len(vectors) ** 2 - len(vectors)) / 2
-        avr = ((np.sum(sim) - len(vectors)) / 2) / num
+        num = len(vectors) ** 2 - len(vectors)
+        avr = (np.sum(sim) - len(vectors)) / num
         print(f"Avr under diagonal: {avr}")
 
     def checkRelation(self, relationName, words: List[Tuple[str, str]]):
@@ -182,7 +182,7 @@ def main():
     ])
 
     # model.exampleSimilarity()
-    # model.printMostSimilar(positive=('król', 'kobieta'), negative='mężczyzna')
+    model.printMostSimilar(positive=('król', 'kobieta'), negative='mężczyzna')
     # model.printMostSimilar(positive='mysz')
 
 
